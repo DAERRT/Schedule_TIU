@@ -3,6 +3,9 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Models\Role;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -15,11 +18,26 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        //Создание ролей
+        Role::create([
+            'name' => 'admin',
+        ]);
+        Role::create([
+            'name' => 'redactor',
+        ]);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+
+        //Создание тестового пользователя
+        User::create([
+            'email' => 'test@tyuiu.ru',
+            'password' => Hash::make('123456789'),
+            'isPassChanged' => true,
+        ]);
+
+        
+        //Привязка ролей к пользователю
+        DB::table('user_role')->insert([
+            ['id_users' => 1, 'id_roles' => 2],
         ]);
     }
 }
