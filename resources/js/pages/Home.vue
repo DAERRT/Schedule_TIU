@@ -11,6 +11,7 @@ defineOptions({
     <!-- Страница создана для теста формы логин-->
     <h1>Главная страница</h1>
     <Link method="post" href="/logout" as="button"> Выйти </Link>
+    <Link method="get" href="/years" as="button" class="button"> Года </Link>
 </template>
 
 <style scoped>
