@@ -47,4 +47,12 @@ class Lesson extends Model
     {
         return $this->belongsTo(Subject::class, 'id_subjects', 'id_subjects');
     }
+
+    /**
+     * Учебный год, к которому принадлежит занятие
+     */
+    public function year()
+    {
+        return $this->belongsTo(Year::class, 'id_years', 'id_years');
+    }
 }
