@@ -8,6 +8,11 @@ class Room extends Model
 {
     protected $primaryKey = 'id_rooms';
 
+    protected $fillable = [
+        'name',
+        'id_buildings',
+    ];
+
     /**
      * Корпус, к которому принадлежит аудитория
      */

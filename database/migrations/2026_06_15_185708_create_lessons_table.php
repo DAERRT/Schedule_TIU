@@ -13,12 +13,12 @@ return new class extends Migration
     {
         Schema::create('lessons', function (Blueprint $table) {
             $table->id('id_lessons');
-            $table->foreignId('id_groups')->constrained('groups')->onDelete('cascade');
-            $table->foreignId('id_years')->constrained('years')->onDelete('cascade');
-            $table->foreignId('id_subgroups')->constrained('sub_groups')->onDelete('cascade');
-            $table->foreignId('id_rooms')->constrained('rooms')->onDelete('cascade');
-            $table->foreignId('id_teachers')->constrained('teachers')->onDelete('cascade');
-            $table->foreignId('id_subjects')->constrained('subjects')->onDelete('cascade');
+            $table->foreignId('id_groups')->constrained('groups', 'id_groups')->onDelete('cascade');
+            $table->foreignId('id_years')->constrained('years', 'id_years')->onDelete('cascade');
+            $table->foreignId('id_subgroups')->constrained('subgroups', 'id_subgroups')->onDelete('cascade');
+            $table->foreignId('id_rooms')->constrained('rooms', 'id_rooms')->onDelete('cascade');
+            $table->foreignId('id_teachers')->constrained('teachers', 'id_teachers')->onDelete('cascade');
+            $table->foreignId('id_subjects')->constrained('subjects', 'id_subjects')->onDelete('cascade');
             $table->enum('week_parity', ['odd', 'even', 'both']);
             $table->enum('week_day',[1,2,3,4,5,6,7]);
             $table->integer('order_number');

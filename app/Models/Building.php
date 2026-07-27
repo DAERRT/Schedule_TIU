@@ -8,6 +8,10 @@ class Building extends Model
 {
     protected $primaryKey = 'id_buildings';
 
+    protected $fillable = [
+        'name',
+    ];
+
     /**
      * Аудитории, принадлежащие корпусу
      */

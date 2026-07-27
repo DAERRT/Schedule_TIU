@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('groups', function (Blueprint $table) {
             $table->id('id_groups');
-            $table->foreignId('id_subgroups')->constrained('subgroups')->onDelete('cascade');
-            $table->foreignId('id_worksheets')->constrained('worksheets')->onDelete('cascade');
+            $table->foreignId('id_subgroups')->constrained('subgroups', 'id_subgroups')->onDelete('cascade');
+            $table->foreignId('id_worksheets')->constrained('worksheets', 'id_worksheets')->onDelete('cascade');
             $table->string('name');
             $table->integer('stud_num')->nullable();
             $table->timestamps();
