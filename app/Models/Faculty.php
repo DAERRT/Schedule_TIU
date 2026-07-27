@@ -8,6 +8,10 @@ class Faculty extends Model
 {
     protected $primaryKey = 'id_faculties';
 
+    protected $fillable = [
+        'name',
+    ];
+
     /**
      * Преподаватели, принадлежащие факультету через таблицу teachers_faculties
      */

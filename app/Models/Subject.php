@@ -8,6 +8,8 @@ class Subject extends Model
 {
     protected $primaryKey = 'id_subjects';
 
+    protected $fillable = ['name'];
+
     /**
      * Занятия, принадлежащие предмету
      */

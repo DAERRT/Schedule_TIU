@@ -8,6 +8,21 @@ class Lesson extends Model
 {
     protected $primaryKey = 'id_lessons';
 
+    protected $fillable = [
+        'id_groups',
+        'id_years',
+        'id_subgroups',
+        'id_rooms',
+        'id_teachers',
+        'id_subjects',
+        'week_parity',
+        'week_day',
+        'order_number',
+        'isZaoch',
+        'start_date',
+        'end_date',
+    ];
+
     /**
      * Группа, к которой принадлежит занятие
      */

@@ -8,6 +8,10 @@ class Worksheet extends Model
 {
     protected $primaryKey = 'id_worksheets';
 
+    protected $fillable = [
+        'name',
+    ];
+
     /**
      * Группы, принадлежащие учебному листу
      */

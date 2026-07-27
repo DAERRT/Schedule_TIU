@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\Year;
 use App\Models\Building;
 use App\Models\Faculty;
+use App\Models\Subject;
+use App\Models\Worksheet;
 use Inertia\Inertia;
 //
 //Контроллер для работы с годами.
@@ -25,6 +27,9 @@ class YearsController extends Controller
     {
         $buildings = Building::with('rooms')->orderBy('name')->get();
         $faculties = Faculty::with('teachers')->orderBy('name')->get();
+        $worksheets = Worksheet::with('groups')->orderBy('name')->get();
+        $subgroups = \App\Models\Subgroup::orderBy('name')->get();
+        $subjects = Subject::orderBy('name')->get();
 
         $lessons = $year->lessons()
             ->with(['subgroup', 'room', 'teacher', 'subject', 'group'])
@@ -34,6 +39,9 @@ class YearsController extends Controller
             'year' => $year,
             'buildings' => $buildings,
             'faculties' => $faculties,
+            'worksheets' => $worksheets,
+            'subgroups' => $subgroups,
+            'subjects' => $subjects,
             'lessons' => $lessons,
         ]);
     }

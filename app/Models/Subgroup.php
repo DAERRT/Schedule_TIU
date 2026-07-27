@@ -8,6 +8,10 @@ class Subgroup extends Model
 {
     protected $primaryKey = 'id_subgroups';
 
+    protected $fillable = [
+        'name',
+    ];
+
     /**
      * Группы, принадлежащие подгруппе
      */

@@ -8,6 +8,13 @@ class Group extends Model
 {
     protected $primaryKey = 'id_groups';
 
+    protected $fillable = [
+        'id_worksheets',
+        'id_subgroups',
+        'name',
+        'stud_num',
+    ];
+
     /**
      * Подгруппа, к которой принадлежит группа
      */

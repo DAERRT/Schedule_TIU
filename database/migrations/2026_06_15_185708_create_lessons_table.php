@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id('id_lessons');
             $table->foreignId('id_groups')->constrained('groups', 'id_groups')->onDelete('cascade');
             $table->foreignId('id_years')->constrained('years', 'id_years')->onDelete('cascade');
-            $table->foreignId('id_subgroups')->constrained('subgroups', 'id_subgroups')->onDelete('cascade');
+            $table->foreignId('id_subgroups')->nullable()->constrained('subgroups', 'id_subgroups')->onDelete('cascade');
             $table->foreignId('id_rooms')->constrained('rooms', 'id_rooms')->onDelete('cascade');
             $table->foreignId('id_teachers')->constrained('teachers', 'id_teachers')->onDelete('cascade');
             $table->foreignId('id_subjects')->constrained('subjects', 'id_subjects')->onDelete('cascade');

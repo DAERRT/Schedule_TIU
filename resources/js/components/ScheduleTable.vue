@@ -1,5 +1,5 @@
 <template>
-    <div class="schedule-table">
+    <div class="schedule-table" :class="{ compact: props.compact }">
         <div class="schedule-header">
             <div class="schedule-cell schedule-cell--header"></div>
             <div
@@ -16,16 +16,14 @@
 
             <div
                 v-for="day in days"
-                :key="`${day}-${row}`"
+                :key="day + row"
                 class="schedule-cell schedule-cell--lesson"
+                @click="onCellClick(day, row)"
             >
                 <div class="schedule-half schedule-half--even">
                     <div
                         v-if="cellLessons(day, row).groupsEven.length"
                         class="subgroup-grid"
-                        :style="{
-                            gridTemplateColumns: `repeat(${cellLessons(day, row).groupsEven.length}, minmax(0, 1fr))`,
-                        }"
                     >
                         <div
                             v-for="group in cellLessons(day, row).groupsEven"
@@ -37,6 +35,8 @@
                                 v-for="lesson in group.lessons"
                                 :key="lesson.id_lessons"
                                 class="lesson-block"
+                                @click.stop="onLessonClick(lesson)"
+                                @contextmenu.prevent="onLessonRightClick(lesson, $event)"
                             >
                                 <div class="lesson-title">
                                     {{ lesson.subject.name }}
@@ -56,9 +56,6 @@
                     <div
                         v-if="cellLessons(day, row).groupsOdd.length"
                         class="subgroup-grid"
-                        :style="{
-                            gridTemplateColumns: `repeat(${cellLessons(day, row).groupsOdd.length}, minmax(0, 1fr))`,
-                        }"
                     >
                         <div
                             v-for="group in cellLessons(day, row).groupsOdd"
@@ -66,11 +63,13 @@
                             class="subgroup-column"
                         >
                             <div class="parity-label">Нечётная</div>
-                            <div
-                                v-for="lesson in group.lessons"
-                                :key="lesson.id_lessons"
-                                class="lesson-block"
-                            >
+                                <div
+                                    v-for="lesson in group.lessons"
+                                    :key="lesson.id_lessons"
+                                    class="lesson-block"
+                                    @click.stop="onLessonClick(lesson)"
+                                    @contextmenu.prevent="onLessonRightClick(lesson, $event)"
+                                >
                                 <div class="lesson-title">
                                     {{ lesson.subject.name }}
                                 </div>
@@ -106,10 +105,29 @@ interface LessonRow {
 
 const props = defineProps<{
     lessons: LessonRow[];
+    compact?: boolean;
+}>();
+
+const emit = defineEmits<{
+    (e: 'cell-click', day: string | number, order: number): void;
+    (e: 'lesson-click', lesson: any): void;
+    (e: 'lesson-contextmenu', lesson: any, event: MouseEvent): void;
 }>();
 
 const days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 const rows = [1, 2, 3, 4, 5, 6, 7, 8];
+
+const onCellClick = (day: string | number, order: number) => {
+    emit('cell-click', day, order);
+};
+
+const onLessonClick = (lesson: any) => {
+    emit('lesson-click', lesson);
+};
+
+const onLessonRightClick = (lesson: any, event: MouseEvent) => {
+    emit('lesson-contextmenu', lesson, event);
+};
 
 const groupedLessons = computed(() => {
     const cells = new Map<
@@ -228,6 +246,7 @@ const cellLessons = (day: string | number, order: number) => {
     grid-template-rows: 1fr 1fr;
     padding: 0;
     min-height: 160px;
+    cursor: pointer;
 }
 
 .schedule-half {
@@ -251,31 +270,86 @@ const cellLessons = (day: string | number, order: number) => {
     border-bottom: none;
 }
 
-.half-content {
+.subgroup-grid {
     display: grid;
-    grid-auto-rows: minmax(0, auto);
-    gap: 8px;
-    padding: 8px;
+    gap: 4px;
+    padding: 4px;
     width: 100%;
+}
+
+.subgroup-column {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.parity-label {
+    font-size: 10px;
+    color: #6b7280;
+    text-align: center;
+    font-weight: 600;
 }
 
 .lesson-block {
     background: #eef2ff;
-    border-radius: 12px;
-    padding: 10px;
+    border-radius: 8px;
+    padding: 8px;
     display: grid;
-    gap: 4px;
-    min-height: 40px;
+    gap: 2px;
+    min-height: 30px;
+    cursor: pointer;
 }
 
 .lesson-title {
     font-weight: 700;
-    font-size: 14px;
+    font-size: 13px;
+    color: #111827;
 }
 
 .lesson-meta,
 .lesson-subgroup {
-    font-size: 12px;
+    font-size: 11px;
+    color: #4b5563;
+}
+
+.schedule-table.compact {
+    border-radius: 12px;
+}
+
+.schedule-table.compact .schedule-cell {
+    padding: 6px;
+    min-height: 70px;
+}
+
+.schedule-table.compact .schedule-cell--lesson {
+    min-height: 90px;
+}
+
+.schedule-table.compact .schedule-half {
+    border-top: 1px solid #e5e7eb;
+}
+
+.schedule-table.compact .schedule-half--even {
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.schedule-table.compact .lesson-block {
+    background: #eef2ff;
+    border-radius: 6px;
+    padding: 4px;
+    display: grid;
+    gap: 1px;
+    min-height: 24px;
+}
+
+.schedule-table.compact .lesson-title {
+    font-weight: 700;
+    font-size: 10px;
+}
+
+.schedule-table.compact .lesson-meta,
+.schedule-table.compact .lesson-subgroup {
+    font-size: 9px;
     color: #4b5563;
 }
 </style>
