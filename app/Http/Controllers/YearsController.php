@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Year;
 use App\Models\Building;
+use App\Models\Faculty;
 use Inertia\Inertia;
 //
 //Контроллер для работы с годами.
@@ -23,10 +24,17 @@ class YearsController extends Controller
     public function show(Year $year)
     {
         $buildings = Building::with('rooms')->orderBy('name')->get();
+        $faculties = Faculty::with('teachers')->orderBy('name')->get();
+
+        $lessons = $year->lessons()
+            ->with(['subgroup', 'room', 'teacher', 'subject', 'group'])
+            ->get();
 
         return Inertia::render('Years/Show', [
             'year' => $year,
             'buildings' => $buildings,
+            'faculties' => $faculties,
+            'lessons' => $lessons,
         ]);
     }
 

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import MainLayout from '@/layouts/MainLayout.vue';
 import Modal from '@/components/Modal.vue';
+import ScheduleTable from '@/components/ScheduleTable.vue';
 import { ref, computed } from 'vue';
 import { useForm, usePage } from '@inertiajs/vue3';
 
@@ -16,6 +17,17 @@ interface Building {
     rooms: Room[];
 }
 
+interface Teacher {
+    id_teachers: number;
+    name: string;
+}
+
+interface Faculty {
+    id_faculties: number;
+    name: string;
+    teachers: Teacher[];
+}
+
 interface Year {
     id_years: number;
     year_start: string;
@@ -25,7 +37,11 @@ interface Year {
 const props = defineProps({
     year: Object as () => Year,
     buildings: Array as () => Building[],
+    faculties: Array as () => Faculty[],
+    lessons: Array as () => any[],
 });
+
+const lessons = computed(() => props.lessons || []);
 
 const page = usePage();
 
@@ -36,18 +52,32 @@ defineOptions({
 
 const selectedBuildingId = ref<number | null>(null);
 const selectedRoomId = ref<number | null>(null);
+const selectedFacultyId = ref<number | null>(null);
+const selectedTeacherId = ref<number | null>(null);
 const buildingMenuOpen = ref(false);
 const roomMenuOpen = ref(false);
+const facultyMenuOpen = ref(false);
+const teacherMenuOpen = ref(false);
 const isBuildingCreateOpen = ref(false);
 const isBuildingEditOpen = ref(false);
 const isBuildingDeleteOpen = ref(false);
 const isRoomCreateOpen = ref(false);
 const isRoomEditOpen = ref(false);
 const isRoomDeleteOpen = ref(false);
+const isFacultyCreateOpen = ref(false);
+const isFacultyEditOpen = ref(false);
+const isFacultyDeleteOpen = ref(false);
+const isTeacherCreateOpen = ref(false);
+const isTeacherEditOpen = ref(false);
+const isTeacherDeleteOpen = ref(false);
 const editingBuilding = ref<Building | null>(null);
 const deletingBuilding = ref<Building | null>(null);
 const editingRoom = ref<Room | null>(null);
 const deletingRoom = ref<Room | null>(null);
+const editingFaculty = ref<Faculty | null>(null);
+const deletingFaculty = ref<Faculty | null>(null);
+const editingTeacher = ref<Teacher | null>(null);
+const deletingTeacher = ref<Teacher | null>(null);
 
 const buildingForm = useForm({
     name: '',
@@ -56,6 +86,15 @@ const buildingForm = useForm({
 const roomForm = useForm({
     name: '',
     id_buildings: '',
+});
+
+const facultyForm = useForm({
+    name: '',
+});
+
+const teacherForm = useForm({
+    name: '',
+    faculty_id: '',
 });
 
 const buildings = computed(() => props.buildings || []);
@@ -74,6 +113,34 @@ const selectedBuilding = computed(() =>
 
 const selectedRoom = computed(() =>
     rooms.value.find((item) => item.id_rooms === selectedRoomId.value),
+);
+
+const selectedRoomLessons = computed(() =>
+    lessons.value.filter((lesson) => lesson.id_rooms === selectedRoomId.value),
+);
+
+const faculties = computed(() => props.faculties || []);
+const teachers = computed(() => {
+    const faculty = faculties.value.find(
+        (item) => item.id_faculties === selectedFacultyId.value,
+    );
+    return faculty ? faculty.teachers : [];
+});
+
+const selectedFaculty = computed(() =>
+    faculties.value.find(
+        (item) => item.id_faculties === selectedFacultyId.value,
+    ),
+);
+
+const selectedTeacher = computed(() =>
+    teachers.value.find((item) => item.id_teachers === selectedTeacherId.value),
+);
+
+const selectedTeacherLessons = computed(() =>
+    lessons.value.filter(
+        (lesson) => lesson.id_teachers === selectedTeacherId.value,
+    ),
 );
 
 const openBuildingCreateModal = () => {
@@ -194,6 +261,126 @@ const deleteRoom = () => {
     });
 };
 
+const openFacultyCreateModal = () => {
+    facultyForm.reset();
+    isFacultyCreateOpen.value = true;
+    facultyMenuOpen.value = false;
+};
+
+const openFacultyEditModal = (faculty: Faculty) => {
+    editingFaculty.value = faculty;
+    facultyForm.name = faculty.name;
+    isFacultyEditOpen.value = true;
+    facultyMenuOpen.value = false;
+};
+
+const openFacultyDeleteModal = (faculty: Faculty) => {
+    deletingFaculty.value = faculty;
+    isFacultyDeleteOpen.value = true;
+    facultyMenuOpen.value = false;
+};
+
+const createFaculty = () => {
+    facultyForm.post('/faculties', {
+        onSuccess: () => {
+            facultyForm.reset('name');
+            isFacultyCreateOpen.value = false;
+        },
+        preserveScroll: true,
+    });
+};
+
+const updateFaculty = () => {
+    if (!editingFaculty.value) {
+        return;
+    }
+
+    facultyForm.put(`/faculties/${editingFaculty.value.id_faculties}`, {
+        onSuccess: () => {
+            facultyForm.reset('name');
+            isFacultyEditOpen.value = false;
+        },
+        preserveScroll: true,
+    });
+};
+
+const deleteFaculty = () => {
+    if (!deletingFaculty.value) {
+        return;
+    }
+
+    facultyForm.delete(`/faculties/${deletingFaculty.value.id_faculties}`, {
+        onSuccess: () => {
+            deletingFaculty.value = null;
+            isFacultyDeleteOpen.value = false;
+        },
+        preserveScroll: true,
+    });
+};
+
+const openTeacherCreateModal = () => {
+    teacherForm.reset();
+    teacherForm.faculty_id = selectedFacultyId.value
+        ? selectedFacultyId.value.toString()
+        : '';
+    isTeacherCreateOpen.value = true;
+    teacherMenuOpen.value = false;
+};
+
+const openTeacherEditModal = (teacher: Teacher) => {
+    editingTeacher.value = teacher;
+    teacherForm.name = teacher.name;
+    teacherForm.faculty_id = selectedFacultyId.value
+        ? selectedFacultyId.value.toString()
+        : '';
+    isTeacherEditOpen.value = true;
+    teacherMenuOpen.value = false;
+};
+
+const openTeacherDeleteModal = (teacher: Teacher) => {
+    deletingTeacher.value = teacher;
+    isTeacherDeleteOpen.value = true;
+    teacherMenuOpen.value = false;
+};
+
+const createTeacher = () => {
+    teacherForm.post('/teachers', {
+        onSuccess: () => {
+            teacherForm.reset('name', 'faculty_id');
+            isTeacherCreateOpen.value = false;
+        },
+        preserveScroll: true,
+    });
+};
+
+const updateTeacher = () => {
+    if (!editingTeacher.value) {
+        return;
+    }
+
+    teacherForm.put(`/teachers/${editingTeacher.value.id_teachers}`, {
+        onSuccess: () => {
+            teacherForm.reset('name', 'faculty_id');
+            isTeacherEditOpen.value = false;
+        },
+        preserveScroll: true,
+    });
+};
+
+const deleteTeacher = () => {
+    if (!deletingTeacher.value) {
+        return;
+    }
+
+    teacherForm.delete(`/teachers/${deletingTeacher.value.id_teachers}`, {
+        onSuccess: () => {
+            deletingTeacher.value = null;
+            isTeacherDeleteOpen.value = false;
+        },
+        preserveScroll: true,
+    });
+};
+
 const selectBuilding = (id: number) => {
     selectedBuildingId.value = id;
     selectedRoomId.value = null;
@@ -203,6 +390,17 @@ const selectBuilding = (id: number) => {
 const selectRoom = (id: number) => {
     selectedRoomId.value = id;
     roomMenuOpen.value = false;
+};
+
+const selectFaculty = (id: number) => {
+    selectedFacultyId.value = id;
+    selectedTeacherId.value = null;
+    facultyMenuOpen.value = false;
+};
+
+const selectTeacher = (id: number) => {
+    selectedTeacherId.value = id;
+    teacherMenuOpen.value = false;
 };
 
 const toggleBuildingMenu = () => {
@@ -216,12 +414,34 @@ const toggleRoomMenu = () => {
     roomMenuOpen.value = !roomMenuOpen.value;
     if (roomMenuOpen.value) {
         buildingMenuOpen.value = false;
+        facultyMenuOpen.value = false;
+        teacherMenuOpen.value = false;
+    }
+};
+
+const toggleFacultyMenu = () => {
+    facultyMenuOpen.value = !facultyMenuOpen.value;
+    if (facultyMenuOpen.value) {
+        buildingMenuOpen.value = false;
+        roomMenuOpen.value = false;
+        teacherMenuOpen.value = false;
+    }
+};
+
+const toggleTeacherMenu = () => {
+    teacherMenuOpen.value = !teacherMenuOpen.value;
+    if (teacherMenuOpen.value) {
+        buildingMenuOpen.value = false;
+        roomMenuOpen.value = false;
+        facultyMenuOpen.value = false;
     }
 };
 
 const closeMenus = () => {
     buildingMenuOpen.value = false;
     roomMenuOpen.value = false;
+    facultyMenuOpen.value = false;
+    teacherMenuOpen.value = false;
 };
 </script>
 
@@ -367,6 +587,27 @@ const closeMenus = () => {
                             </div>
                         </div>
                     </div>
+
+                    <div class="schedule-preview content-scroll">
+                        <div class="schedule-preview-header">
+                            <span>Расписание аудитории</span>
+                            <span class="selected-room">
+                                {{
+                                    selectedRoom?.name ?? 'Аудитория не выбрана'
+                                }}
+                            </span>
+                        </div>
+                        <div class="schedule-preview-body">
+                            <ScheduleTable
+                                v-if="selectedRoomId"
+                                :lessons="selectedRoomLessons"
+                            />
+                            <div v-else class="empty-schedule">
+                                Выберите аудиторию справа сверху, чтобы увидеть
+                                её расписание.
+                            </div>
+                        </div>
+                    </div>
                 </section>
 
                 <Modal v-model="isBuildingCreateOpen">
@@ -483,22 +724,111 @@ const closeMenus = () => {
                     </div>
                 </Modal>
 
-                <section class="card bottom-card">
-                    <h2>Дополнительная панель</h2>
-                    <p>
-                        Здесь можно разместить дополнительные контролы, список
-                        выбранных аудиторий или текущие фильтры.
-                    </p>
+                <section class="card bottom-card" @click="closeMenus">
+                    <h2>Выбор факультета и преподавателя</h2>
+                    <div class="custom-filters">
+                        <div class="dropdown-block">
+                            <div class="dropdown-label">Кафедра</div>
+                            <button
+                                type="button"
+                                class="dropdown-trigger"
+                                @click.stop="toggleFacultyMenu"
+                            >
+                                {{
+                                    selectedFaculty?.name ?? 'Выберите кафедру'
+                                }}
+                                <span class="dropdown-arrow">▾</span>
+                            </button>
+                            <div v-if="facultyMenuOpen" class="dropdown-menu">
+                                <div
+                                    v-for="faculty in faculties"
+                                    :key="faculty.id_faculties"
+                                    class="dropdown-item"
+                                >
+                                    <button
+                                        type="button"
+                                        class="item-label"
+                                        @click="
+                                            selectFaculty(faculty.id_faculties)
+                                        "
+                                    >
+                                        {{ faculty.name }}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="dropdown-block">
+                            <div class="dropdown-label">Преподаватель</div>
+                            <button
+                                type="button"
+                                class="dropdown-trigger"
+                                :class="{ disabled: !selectedFacultyId }"
+                                @click.stop="
+                                    selectedFacultyId && toggleTeacherMenu()
+                                "
+                                :disabled="!selectedFacultyId"
+                            >
+                                {{
+                                    selectedTeacher?.name ??
+                                    'Выберите преподавателя'
+                                }}
+                                <span class="dropdown-arrow">▾</span>
+                            </button>
+                            <div v-if="teacherMenuOpen" class="dropdown-menu">
+                                <div
+                                    v-for="teacher in teachers"
+                                    :key="teacher.id_teachers"
+                                    class="dropdown-item"
+                                >
+                                    <button
+                                        type="button"
+                                        class="item-label"
+                                        @click="
+                                            selectTeacher(teacher.id_teachers)
+                                        "
+                                    >
+                                        {{ teacher.name }}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="schedule-preview content-scroll">
+                        <div class="schedule-preview-header">
+                            <span>Расписание преподавателя</span>
+                            <span class="selected-room">
+                                {{
+                                    selectedTeacher?.name ??
+                                    'Преподаватель не выбран'
+                                }}
+                            </span>
+                        </div>
+                        <div class="schedule-preview-body">
+                            <ScheduleTable
+                                v-if="selectedTeacherId"
+                                :lessons="selectedTeacherLessons"
+                            />
+                            <div v-else class="empty-schedule">
+                                Выберите преподавателя слева сверху, чтобы
+                                увидеть его расписание.
+                            </div>
+                        </div>
+                    </div>
                 </section>
             </div>
 
             <div class="right-side">
-                <section class="card">
-                    <h2>Правая часть</h2>
-                    <p>
-                        Здесь позже появится информация о расписании и занятиях
-                        для выбранной аудитории.
-                    </p>
+                <section class="card schedule-card">
+                    <div class="schedule-header-block">
+                        <h2>Расписание</h2>
+                        <p class="schedule-note">
+                            Строки — пары 1–8, столбцы — дни недели. Верхняя
+                            половина — чётная неделя, нижняя — нечётная.
+                        </p>
+                    </div>
+                    <ScheduleTable :lessons="lessons" />
                 </section>
             </div>
         </div>
@@ -512,20 +842,49 @@ const closeMenus = () => {
 
 .page-grid {
     display: grid;
-    grid-template-columns: 1.2fr 0.8fr;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
     gap: 24px;
     min-height: calc(100vh - 100px);
+    height: calc(100vh - 100px);
 }
 
 .left-side {
     display: grid;
     grid-template-rows: 1fr 1fr;
     gap: 24px;
+    min-height: 0;
 }
 
 .right-side {
     display: grid;
     gap: 24px;
+    min-height: 0;
+}
+
+.left-side > section,
+.right-side > section {
+    min-height: 0;
+}
+
+.top-card,
+.bottom-card,
+.schedule-card {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.schedule-card {
+    height: 100%;
+}
+
+.left-side {
+    grid-template-rows: 1fr 1fr;
+}
+
+.page-grid {
+    grid-template-columns: 1fr 1fr;
 }
 
 .card {
@@ -533,25 +892,73 @@ const closeMenus = () => {
     border-radius: 24px;
     padding: 24px;
     box-shadow: 0 24px 64px rgba(15, 23, 42, 0.06);
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.top-card,
+.bottom-card {
+    overflow: visible;
+}
+
+.card > * {
+    min-height: 0;
+}
+
+.card .content-scroll {
+    overflow: auto;
+    min-height: 0;
+}
+
+.schedule-preview {
+    margin-top: 20px;
+    min-height: calc(100% - 72px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.schedule-preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.schedule-preview-body {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+}
+
+.empty-schedule {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 220px;
+    color: #6b7280;
+    text-align: center;
 }
 
 .custom-filters {
     display: flex;
     flex-wrap: wrap;
     gap: 18px;
+    align-items: flex-end;
+    font-weight: 600;
+    margin-bottom: 10px;
 }
 
-.dropdown-block {
-    position: relative;
+.custom-filters > .dropdown-block {
     flex: 1 1 280px;
     min-width: 220px;
 }
 
-.dropdown-label {
-    color: #6b7280;
-    font-size: 14px;
-    font-weight: 600;
-    margin-bottom: 10px;
+.dropdown-block {
+    position: relative;
 }
 
 .dropdown-trigger {
@@ -587,7 +994,7 @@ const closeMenus = () => {
     border: 1px solid #e5e7eb;
     border-radius: 20px;
     box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
-    z-index: 20;
+    z-index: 999;
     overflow: hidden;
 }
 
